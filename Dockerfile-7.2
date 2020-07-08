@@ -1,0 +1,83 @@
+FROM php:7.2-fpm-alpine
+
+ENV ASUSER=0
+
+RUN apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        curl-dev \
+        freetype-dev \
+        icu-dev \
+        imagemagick-dev \
+        libjpeg-turbo-dev \
+        libmemcached-dev \
+        libpng-dev \
+        libsodium-dev \
+        libtool \
+        libxml2-dev \
+        postgresql-dev \
+        sqlite-dev \
+    && apk add --no-cache \
+        curl \
+        git \
+        imagemagick \
+        libmemcached-libs \
+        libsodium \
+        libintl \
+        mysql-client \
+        nodejs \
+        npm \
+        postgresql-libs \
+        icu \
+        shadow \
+    && pecl install imagick xdebug mongodb memcached \
+    && pecl install -o -f redis \
+    && pecl install -f libsodium \
+    && echo "extension=memcached.so" > /usr/local/etc/php/conf.d/20_memcached.ini \
+    && docker-php-ext-configure gd \
+        --with-jpeg-dir=/usr/lib \
+        --with-freetype-dir=/usr/include/freetype2 \
+    && docker-php-ext-enable imagick \
+        xdebug \
+        mongodb \
+        memcached \
+        redis \
+    && docker-php-ext-install -j$(nproc) \
+        bcmath \
+        curl \
+        exif \
+        gd \
+        iconv \
+        intl \
+        mbstring \
+        mysqli \
+        opcache \
+        pdo \
+        pdo_mysql \
+        pdo_pgsql \
+        pdo_sqlite \
+        pcntl \
+        soap \
+        tokenizer \
+        xml \
+        zip \
+        intl \
+    && curl -s https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer \
+    && apk del -f .build-deps
+
+COPY ./php.ini /usr/local/etc/php/php.ini
+COPY ./opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY ./d3dock.ini /usr/local/etc/php/conf.d
+COPY ./d3dock.pool.conf /usr/local/etc/php-fpm.d/
+COPY ./xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+COPY user-entrypoint /usr/local/bin/
+
+RUN sed -i "s/xdebug.remote_enable=0/xdebug.remote_enable=1/" /usr/local/etc/php/conf.d/xdebug.ini && \
+    sed -i "s/xdebug.cli_color=0/xdebug.cli_color=1/" /usr/local/etc/php/conf.d/xdebug.ini
+
+WORKDIR /var/www
+
+ENTRYPOINT ["user-entrypoint"]
+
+CMD ["php-fpm"]
+
+EXPOSE 9000

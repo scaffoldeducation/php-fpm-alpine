@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ ! -z "$ASUSER" ] && [ "$ASUSER" != "0" ]; then
+    mkdir -p /home/www-data && \
+    chown -R www-data:www-data /home/www-data && \
+    chmod 700 /home/www-data && \
+    usermod -u $ASUSER www-data -d /home/www-data
+
+fi
+
+exec docker-php-entrypoint "$@"

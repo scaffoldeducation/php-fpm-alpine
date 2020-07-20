@@ -1,6 +1,7 @@
 FROM php:7.3-fpm-alpine
 
 ENV ASUSER=0
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 
 RUN apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
@@ -17,8 +18,10 @@ RUN apk add --no-cache --virtual .build-deps \
         postgresql-dev \
         sqlite-dev \
     && apk add --no-cache \
+        --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ --allow-untrusted \
         curl \
         git \
+        gnu-libiconv \
         imagemagick \
         libmemcached-libs \
         libsodium \

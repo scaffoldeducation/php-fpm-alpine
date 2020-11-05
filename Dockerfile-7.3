@@ -65,7 +65,7 @@ RUN apk add --no-cache --virtual .build-deps \
         xml \
         zip \
         intl \
-    && curl -s https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer \
+    && curl -s https://getcomposer.org/installer | php -- --version=1.10.16 --install-dir=/usr/local/bin/ --filename=composer \
     && apk del -f .build-deps
 
 COPY ./php.ini /usr/local/etc/php/php.ini
